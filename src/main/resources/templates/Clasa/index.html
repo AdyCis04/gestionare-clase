@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<style>
+    /* General Reset */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #ffffff; /* Obligatoriu fundal alb pentru raport  */
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1); /* Aspect profesional/robust */
+    border-radius: 8px;
+}
+
+h1 {
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+    text-align: center;
+}
+
+/* Sectiunea de Filtrare (Bonus: Interfata intuitiva) */
+.filter-section {
+    margin-bottom: 25px;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+}
+
+.filter-section input[type="text"] {
+    padding: 10px;
+    width: 300px;
+    border: 1px solid #ddd;
+    border-radius: 4px 0 0 4px;
+    outline: none;
+}
+
+.filter-section button {
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.filter-section button:hover {
+    background-color: #2980b9;
+}
+
+/* Tabelul de Date (Vizualizarea colectiei) */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background-color: white;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #34495e;
+    color: white;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+tr:hover {
+    background-color: #f1f1f1; /* Feedback vizual pentru utilizator */
+}
+
+/* Butoane Actiuni */
+.btn-select {
+    display: inline-block;
+    padding: 8px 12px;
+    background-color: #27ae60;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 13px;
+    transition: 0.3s;
+}
+
+.btn-select:hover {
+    background-color: #219150;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.actions {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.btn-back {
+    color: #7f8c8d;
+    text-decoration: none;
+    font-weight: bold;
+    border: 1px solid #7f8c8d;
+    padding: 10px 20px;
+    border-radius: 4px;
+    transition: 0.3s;
+}
+
+.btn-back:hover {
+    background-color: #7f8c8d;
+    color: white;
+}
+
+.btn-primary {
+    color: #13400d;
+    text-decoration: none;
+    font-weight: bold;
+    border: 1px solid #7f8c8d;
+    padding: 10px 20px;
+    border-radius: 4px;
+    transition: 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #13400d;
+    color: white;
+}
+
+    .modal {
+    display: none; /* Ascuns inițial */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5); /* Fundal semi-transparent */
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+.modal-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-around;
+}
+</style>
+<head>
+    <meta charset="UTF-8">
+    <title>Lista Clase</title>
+</head>
+<body>
+<div class="container">
+    <h1>Alegeti clasa pe care vreti s-o vizualizati</h1>
+
+    <div class="filter-section">
+        <form th:action="@{/claseSearch}" method="post">
+            <input type="text" name="keyword" placeholder="Filtrează după profil (ex: Filologie)...">
+            <button type="submit">Filtrează</button>
+        </form>
+    </div>
+
+    <table border="1" >
+        <thead>
+        <tr>
+            <th>Denumire Clasă</th>
+            <th>Profil</th>
+            <th>Specializare</th>
+            <th>An Școlar</th>
+            <th>Acțiuni</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="clasa : ${clase}">
+            <td th:text="${clasa.denumire}"></td>
+            <td th:text="${clasa.profil}"></td>
+            <td th:text="${clasa.specializare}"></td>
+            <td th:text="${clasa.anScolar}"></td>
+
+            <td>
+                <form th:if="${session.role == 'Administrator'}" th:action="@{/claseDelete}" method="post" style="display:inline">
+                    <input type="hidden" name="id" th:value="${clasa.id}">
+                    <button type="submit" class="btn-select"
+                            onclick="return confirm('Sigur vrei să ștergi clasa?');">
+                        Șterge
+                    </button>
+                </form>
+                <form th:if="${session.role == 'Administrator'}" th:action="@{/claseModify}" method="get" style="display:inline">
+                    <input type="hidden" name="id" th:value="${clasa.id}">
+                    <button type="submit" class="btn-select">
+                        Modifica
+                    </button>
+                </form>
+
+                <form th:action="@{/eleviIndex}" method="get" style="display:inline">
+                    <input type="hidden" name="id" th:value="${clasa.id}">
+                    <button type="submit" class="btn-select">
+                        Vizualizare clasa
+                    </button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="actions">
+        <a th:href="@{/}" class="btn-back">Înapoi la Dashboard</a>
+        <a th:if="${session.role == 'Administrator'}" th:href="@{/claseCreate}" class="btn-primary">Adauga clasa noua</a>
+    </div>
+</div>
+</body>
+</html>
